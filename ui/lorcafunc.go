@@ -3,6 +3,8 @@ package ui
 import (
 	"popup/view"
 	"time"
+
+	"github.com/go-vgo/robotgo"
 )
 
 func jsbind() {
@@ -12,6 +14,18 @@ func jsbind() {
 	Lorcaui.Bind("lorca_loadcontent", lorca_loadcontent)
 	Lorcaui.Bind("lorca_loaduri", lorca_loaduri)
 	Lorcaui.Bind("lorca_localjs", lorca_localjs)
+	Lorcaui.Bind("lorca_notification", lorca_notification)
+}
+
+func lorca_notification(t string) {
+	robotgo.ShowAlert("弹窗", "消息", "按钮1", "退出按钮")
+	// timeLayout := time.Now().Format("2006-01-02")
+	// timeLayout = timeLayout + " " + t + ":00"
+	// loc, _ := time.LoadLocation("Local") //获取时区
+	// tmp, _ := time.ParseInLocation("2006-01-02 15:04:05", timeLayout, loc)
+	// timestamp := tmp.Unix()
+	// Lorcaui.Eval(view.GetJs(title))
+	// return view.GetJs(title)
 }
 
 func lorca_localjs(title string) string {

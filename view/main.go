@@ -18,6 +18,8 @@ func GetJs(title string) string {
 	switch title {
 	case "jquery":
 		js = jquery()
+	case "jquery-cookie":
+		js = jquery_cookie()
 	default:
 		js = ""
 	}
@@ -31,9 +33,11 @@ func viewMain() string {
 		<meta charset="UTF-8">
 	</head>
 	<body>
+		<div>
 		<button onclick="lorca_loaduri('http://172.16.3.23:8080')">jumpTo：172.16.3.23:8080</button>
 		<button id="a" onclick="localjs()">测试js是否加载</button>
-		<button onclick="lorca_loadcontent('test')">加载test页面</button>
+		<!--<button onclick="lorca_loadcontent('test')">加载test页面</button>-->
+		<button onclick="lorca_notification('test')">弹窗</button>
 	</body>
 	<script>
 	lorca_localjs("jquery")

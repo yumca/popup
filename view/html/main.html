@@ -3,11 +3,163 @@
 <head>
     <title></title>
     <meta charset="UTF-8">
-    </script>
+    <script type="text/javascript" src="../static/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../static/jquery.cookie-1.4.1.min.js"></script>
 </head>
 
 <body>
-    <button onclick="lorca_loaduri('http://172.16.3.23:8080')">jumpTo：172.16.3.23:8080</button>
+    <div><textarea id="textarea" style="height: 40%; width: 100%;"></textarea></div>
+    <div id="list">
+        <div class="val">as<button class="del" data-i="1">删除</button><span style="color: green;">未通知</span><span
+                style="color: red;">已通知</span></div>
+    </div>
 </body>
+<script>
+    if (!("Notification" in window)) {
+        alert("This browser does not support desktop notification");
+    }
+    // check whether notification permissions have alredy been granted
+    else if (Notification.permission === "granted") {
+        // If it's okay let's create a notification
+        new Notification("Granted!");
+        console.log("Granted ");
+    }
+    // Otherwise, ask the user for permission
+    else if (Notification.permission !== 'denied') {
+        Notification.requestPermission(function (permission) {
+            // If the user accepts, let's create a notification
+            if (permission === "granted") {
+                var notification = new Notification("Request granted!", {
+                    body: "你有一个奖品待领取",
+                    icon: "https://www.baidu.com/favicon.ico",
+                    data: "https://www.baidu.com/"
+                });
+                console.log(notification);
+                notification.onshow = function (event) {
+                    console.log("show : ", event);
+                };
+                notification.onclose = function (event) {
+                    console.log("close : ", event);
+                };
+                notification.onclick = function (event) {
+                    console.log("click : ", event);
+                    // 当点击事件触发，打开指定的url
+                    window.open(event.target.data)
+                    notification.close();
+                };
+                notification.shown = true
+            }
+        });
+    }
+    function CookieEnable() {
+        var result = false;
+        if (navigator.cookiesEnabled) return true;
+
+        document.cookie = "testcookie=yes;";
+
+        var cookieSet = document.cookie;
+
+        if (cookieSet.indexOf("testcookie=yes") > -1) result = true;
+
+        document.cookie = "";
+
+        return result;
+    }
+
+    if (!CookieEnable()) {
+        alert("对不起，您的浏览器的Cookie功能被禁用，请开启");
+    }
+</script>
+<script>
+    var notify_list = []
+    var notify_list_str = $.cookie('notify_list');
+    if (notify_list_str != "" && notify_list_str != null && notify_list_str != undefined) {
+        notify_list = JSON.parse(notify_list_str)
+        changelist()
+    }
+    console.log(chrome.notifications)
+    // 14:15，2号会议室，项目开发子系统和产品项目子系统对接
+    $('#textarea').blur(function () {
+        var reg = /\d{1,2}(:\d{1,2})/;
+        var reg_res = reg.exec($('#textarea').val())
+        console.log(reg_res)
+        if (reg_res != null) {
+            var myDate = new Date;
+            var year = myDate.getFullYear(); //获取当前年
+            var mon = myDate.getMonth() + 1; //获取当前月
+            var date = myDate.getDate(); //获取当前日
+            var date_str = year + "-" + mon + "-" + date + " " + reg_res[0] + ":00"
+            var notifytime = (new Date(date_str)) - 60000;//把当前日期变成毫秒时间戳
+            var val = {
+                content: $('#textarea').val(),
+                timestamp: notifytime,
+                notify: false
+            }
+            notify_list.push(val)
+            console.log(JSON.stringify(notify_list))
+            console.log(notify_list)
+            $.cookie('notify_list', JSON.stringify(notify_list), { expires: 1000 });
+            changelist()
+        }
+    });
+    function changelist() {
+        if (notify_list.length > 0) {
+            var html = "";
+            for (var i = 0; i < notify_list.length; i++) {
+                html += '<div class="val">' + notify_list[i].content + '<button class="del">删除</button><span style="color: green;">未通知</span><span style="color: red;">已通知</span></div>'
+                if (notify_list[i].notify == true) {
+                    html += '<span style="color: red;">已通知</span>'
+                } else {
+                    html += '<span style="color: green;">未通知</span>'
+                }
+                html += '</div>'
+            }
+        }
+    }
+    $('#del').on('click', function () {
+        console.log($(this).data('i'))
+        // notify_list.splice()
+    })
+    // setInterval(notify, 30000)
+    function notify(type, title, message) {
+        if (notify_list.length > 0) {
+            for (var i = 0; i < notify_list.length; i++) {
+                var now = (new Date()).getTime()
+                if (notify_list[i].notify == false && notify_list[i].timestamp < now) {
+                    var opt = {
+                        // "appIconMaskUrl": "", //应用缩略图 imgdata格式 blob格式
+                        // "buttons": [
+                        // {
+                        //     "iconUrl": "", //按钮图像缩略图的URL imgdata格式 blob格式  string
+                        //     "title": "", //按钮标题   string
+                        // }
+                        // ],
+                        // "contextMessage": "",                     //更淡更小的字体显示的通知内容 string
+                        "eventTime": Date.now(), //通知时间毫秒时间戳  number
+                        // "iconUrl": "",                     //发送者头像  imgdata格式 blob格式  string
+                        // "imageUrl": "",                     //用于图像类型通知的图像缩略图的URL imgdata格式 blob格式  string
+                        // "isClickable": false,                  //是否可点击？  boolean
+                        // "items":[] //用于多个通知的字段  list
+                        "message": message,   //主要通知内容  string
+                        "title": title, //主要通知标题  string
+                        "priority": 0,    //优先级  number
+                        //优先级范围从-2到2，-2是最低优先级。2是最高的。默认为0
+                        //在不支持通知中心的平台（Windows、Linux和Mac）上，-2和-1将导致错误，因为具有这些优先级的通知将根本不显示
+                        // "progress": 0,       //显示进度0-100.   number
+                        // "requireInteraction": false,   //是否禁止在用户激活或取消之前，通知在屏幕上保持可见  bool
+                        // "silent": false,   //是否禁止声音或者震动  默认false  bool
+                        "type": type, //要显示的通知类型  "basic" "image" "list" or "progress"  string
+                    }
+                    chrome.notifications.create('', opt, function (id) {
+                        alert(id)
+                    })
+                    notify_list[i].notify = true
+                    $.cookie('notify_list', JSON.stringify(notify_list), { expires: 1 });
+                    changelist()
+                }
+            }
+        }
+    }
+</script>
 
 </html>

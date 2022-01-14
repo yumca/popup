@@ -15,12 +15,7 @@ var (
 )
 
 func LorcaNew(width, height int, customArgs ...string) error {
-	// conf, err := library.GetConf()
-	// if err != nil {
-	// 	log.Fatal("mainServer GetConfig Error:", err)
-	// }
 	path = library.GetExecPath()
-	// Lorcaui, err = lorca.New("http://dev.oa3.com/", "", width, height, customArgs...)
 	Lorcaui, err = lorca.New(view.GetView(""), "", width, height, customArgs...)
 	if err != nil {
 		log.Fatal(err)
