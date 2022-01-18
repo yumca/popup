@@ -6,8 +6,8 @@
 </head>
 
 <body>
-    <button onclick="lorca_loadcontent('main')">刷新</button>
-    <button onclick="lorca_alert('弹窗','弹窗内容')">test</button>
+    <!--<button onclick="lorca_loadcontent('main')">刷新</button>-->
+    <!--<button onclick="lorca_alert('弹窗','弹窗内容')">test</button>-->
     <div><textarea id="textarea" style="height: 40%; width: 100%;"></textarea></div>
     <div id="list">
         <div>无</div>
@@ -24,8 +24,10 @@
         lorca_get_meetings().then(function (res) {
             if (res != "") {
                 notify_list = JSON.parse(res)
-                changelist()
+            } else {
+                notify_list = []
             }
+            changelist()
         })
         // 14:15，2号会议室，项目开发子系统和产品项目子系统对接
         $('#textarea').blur(function () {
@@ -53,8 +55,10 @@
                     lorca_get_meetings().then(function (res) {
                         if (res != "") {
                             notify_list = JSON.parse(res)
-                            changelist()
+                        } else {
+                            notify_list = []
                         }
+                        changelist()
                     })
                 })
             }
@@ -78,12 +82,14 @@
     }
 
     function delete_meeting(id) {
-        lorca_delete_meeting(id).then(function () {
+        lorca_delete_meeting(id).then(function (res) {
             lorca_get_meetings().then(function (res) {
                 if (res != "") {
                     notify_list = JSON.parse(res)
-                    changelist()
+                } else {
+                    notify_list = []
                 }
+                changelist()
             })
         })
     }
@@ -100,8 +106,10 @@
                             lorca_get_meetings().then(function (res) {
                                 if (res != "") {
                                     notify_list = JSON.parse(res)
-                                    changelist()
+                                } else {
+                                    notify_list = []
                                 }
+                                changelist()
                             })
                         }
                     })

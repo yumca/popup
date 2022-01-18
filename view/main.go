@@ -53,8 +53,10 @@ func viewMain() string {
 			lorca_get_meetings().then(function (res) {
 				if (res != "") {
 					notify_list = JSON.parse(res)
-					changelist()
+				} else {
+					notify_list = []
 				}
+				changelist()
 			})
 			// 14:15，2号会议室，项目开发子系统和产品项目子系统对接
 			$('#textarea').blur(function () {
@@ -82,8 +84,10 @@ func viewMain() string {
 						lorca_get_meetings().then(function (res) {
 							if (res != "") {
 								notify_list = JSON.parse(res)
-								changelist()
+							} else {
+								notify_list = []
 							}
+							changelist()
 						})
 					})
 				}
@@ -107,12 +111,14 @@ func viewMain() string {
 		}
 
 		function delete_meeting(id) {
-			lorca_delete_meeting(id).then(function () {
+			lorca_delete_meeting(id).then(function (res) {
 				lorca_get_meetings().then(function (res) {
 					if (res != "") {
 						notify_list = JSON.parse(res)
-						changelist()
+					} else {
+						notify_list = []
 					}
+					changelist()
 				})
 			})
 		}
@@ -129,8 +135,10 @@ func viewMain() string {
 								lorca_get_meetings().then(function (res) {
 									if (res != "") {
 										notify_list = JSON.parse(res)
-										changelist()
+									} else {
+										notify_list = []
 									}
+									changelist()
 								})
 							}
 						})
