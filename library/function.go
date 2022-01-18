@@ -1,14 +1,19 @@
 package library
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/thinkeridea/go-extend/exnet"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 /**
@@ -105,6 +110,27 @@ func Md5(s string) string {
 	h := md5.New()
 	h.Write([]byte(s))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// GBK 转 UTF-8
+func GbkToUtf8(s []byte) []byte {
+	reader := transform.NewReader(bytes.NewReader(s), unicode.UTF8.NewDecoder())
+	d, e := ioutil.ReadAll(reader)
+	if e != nil {
+		return s
+	}
+	return d
+}
+
+// UTF-8 转 GBK
+func Utf8ToGbk(s []byte) []byte {
+	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewEncoder())
+	d, e := ioutil.ReadAll(reader)
+	if e != nil {
+		// log.Fatal(e)
+		return s
+	}
+	return d
 }
 
 //

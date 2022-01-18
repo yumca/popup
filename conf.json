@@ -1,11 +1,12 @@
 {
     "Db": {
-        "DbHost": "118.24.10.229",
+        "DbHost": "127.0.0.1",
         "DbUser": "root",
-        "DbPwd": "lc2w3e4r",
+        "DbPwd": "b2d60af82a28cdfa",
         "DbPort": 3306,
         "DbPrefix": "",
-        "DbType": "mysql"
+        "DbType": "mysql",
+        "Database": "test"
     },
     "Redis": {
         "Stat": "off",

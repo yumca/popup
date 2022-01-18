@@ -19,6 +19,7 @@ type db struct {
 	DbPort   int
 	DbPrefix string
 	DbType   string
+	Database string
 }
 
 type rd struct {
@@ -64,23 +65,8 @@ func GetConf() (Conf Config, err error) {
 }
 
 func GetConfInfo(path string) (conf Config, err error) {
-	if path == "" {
-		path = GetExecPath()
-	}
-	file, osErr := os.Open(path + "/conf.json")
-	// 打开文件
-	// file, osErr := os.Open("G:/WWW/golang/src/webchat/conf.json")
-	if osErr != nil {
-		err = errors.New("读取Conf配置文件错误")
-		return
-	}
-	// 关闭文件
-	defer file.Close()
 	var tmpConf Config
-	//NewDecoder创建一个从file读取并解码json对象的*Decoder，解码器有自己的缓冲，并可能超前读取部分json数据。
-	decoder := json.NewDecoder(file)
-	//Decode从输入流读取下一个json编码值并保存在v指向的值里
-	errJson := decoder.Decode(&tmpConf)
+	errJson := json.Unmarshal([]byte(conf_json), &tmpConf)
 	if errJson != nil {
 		err = errors.New("读取Conf配置错误")
 		return
@@ -89,11 +75,34 @@ func GetConfInfo(path string) (conf Config, err error) {
 	return
 }
 
-//func main() {
-//	conf, err := GetConf()
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//	fmt.Println(conf.Db.DbPort)
-//}
+var conf_json = `{
+    "Db": {
+        "DbHost": "127.0.0.1",
+        "DbUser": "root",
+        "DbPwd": "b2d60af82a28cdfa",
+        "DbPort": 3306,
+        "DbPrefix": "",
+        "DbType": "mysql",
+        "Database": "test"
+    },
+    "Redis": {
+        "Stat": "off",
+        "RedisHost": "127.0.0.1",
+        "RedisPort": "6379",
+        "RedisPrefix": "task_",
+        "RedisPwd": "",
+        "RedisDb": 9
+    },
+    "Setting": {
+        "ServerName": "Pupup",
+        "LogFile": "./go_pupup.log",
+        "PidFile": "./go_pupup.pid",
+        "Daemonize": 0
+    },
+    "Server": {
+        "http": "172.16.4.66:8088",
+        "ws": "172.16.4.66:8090",
+        "tcp": "172.16.4.66:8070"
+    }
+}
+`

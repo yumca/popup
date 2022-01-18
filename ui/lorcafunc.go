@@ -1,7 +1,15 @@
 package ui
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"popup/library"
+	"popup/model/tables"
 	"popup/view"
+	"strings"
 	"time"
 
 	"github.com/go-vgo/robotgo"
@@ -14,24 +22,69 @@ func jsbind() {
 	Lorcaui.Bind("lorca_loadcontent", lorca_loadcontent)
 	Lorcaui.Bind("lorca_loaduri", lorca_loaduri)
 	Lorcaui.Bind("lorca_localjs", lorca_localjs)
-	Lorcaui.Bind("lorca_notification", lorca_notification)
+	Lorcaui.Bind("lorca_alert", lorca_alert)
+	Lorcaui.Bind("lorca_save_meeting", lorca_save_meeting)
+	Lorcaui.Bind("lorca_get_meetings", lorca_get_meetings)
+	Lorcaui.Bind("lorca_update_meeting", lorca_update_meeting)
+	Lorcaui.Bind("lorca_delete_meeting", lorca_delete_meeting)
 }
 
-func lorca_notification(t string) {
-	robotgo.ShowAlert("弹窗", "消息", "按钮1", "退出按钮")
-	// timeLayout := time.Now().Format("2006-01-02")
-	// timeLayout = timeLayout + " " + t + ":00"
-	// loc, _ := time.LoadLocation("Local") //获取时区
-	// tmp, _ := time.ParseInLocation("2006-01-02 15:04:05", timeLayout, loc)
-	// timestamp := tmp.Unix()
-	// Lorcaui.Eval(view.GetJs(title))
-	// return view.GetJs(title)
+func lorca_delete_meeting(id int) string {
+	var meeting tables.Meeting
+	fmt.Println(id)
+	meeting.Id = id
+	meeting.Delete()
+	return ""
+}
+
+func lorca_update_meeting(update_json string) string {
+	var meeting tables.Meeting
+	err := json.Unmarshal([]byte(update_json), &meeting)
+	if err != nil {
+		return err.Error()
+	}
+	meeting.Update("notify", meeting.Notify)
+	return ""
+}
+
+func lorca_get_meetings() string {
+	var meeting tables.Meeting
+	meetings := meeting.GetMeetings()
+	s, err := json.Marshal(meetings)
+	if err != nil {
+		return err.Error()
+	}
+	return string(s)
+}
+
+func lorca_save_meeting(save_json string) string {
+	var meeting tables.Meeting
+	err := json.Unmarshal([]byte(save_json), &meeting)
+	if err != nil {
+		return err.Error()
+	}
+	meeting.Save()
+	return ""
+}
+
+func lorca_alert(t, m string) {
+	go robotgo.ShowAlert(string(library.Utf8ToGbk([]byte(t))), string(library.Utf8ToGbk([]byte(m))))
+	execFile, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(execFile)
+	index := strings.LastIndex(path, string(os.PathSeparator))
+	pids, _ := robotgo.FindIds(path[index+1:])
+	robotgo.ActivePID(pids[0])
+	// _, fullFilename, _, _ := runtime.Caller(0)
+	// filename := path.Base(fullFilename)
+	// fmt.Println(filename)
+	// pids, _ := robotgo.FindIds(filename)
+	// robotgo.ActivePID(pids[0])
 }
 
 func lorca_localjs(title string) string {
-	if view.GetJs(title) != "" {
-		Lorcaui.Eval(view.GetJs(title))
-	}
+	// if view.GetJs(title) != "" {
+	// 	Lorcaui.Eval(view.GetJs(title))
+	// }
 	return view.GetJs(title)
 }
 

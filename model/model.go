@@ -22,9 +22,9 @@ func NewConnection() *gorm.DB {
 	var dialector gorm.Dialector
 	switch conf.Db.DbType {
 	case "mysql":
-		dialector = mysql.Open(conf.Db.DbUser + ":" + conf.Db.DbPwd + "@(" + conf.Db.DbHost + ":" + strconv.Itoa(conf.Db.DbPort) + ")/criminal_minds?charset=utf8mb4&parseTime=True&loc=Local")
-	case "sqlite":
-		dialector = mysql.Open(conf.Db.DbUser + ":" + conf.Db.DbPwd + "@(" + conf.Db.DbHost + ":" + strconv.Itoa(conf.Db.DbPort) + ")/criminal_minds?charset=utf8mb4&parseTime=True&loc=Local")
+		dialector = mysql.Open(conf.Db.DbUser + ":" + conf.Db.DbPwd + "@(" + conf.Db.DbHost + ":" + strconv.Itoa(conf.Db.DbPort) + ")/" + conf.Db.Database + "?charset=utf8mb4&parseTime=True&loc=Local")
+	// case "sqlite3":
+	// 	dialector = mysql.Open(conf.Db.DbUser + ":" + conf.Db.DbPwd + "@(" + conf.Db.DbHost + ":" + strconv.Itoa(conf.Db.DbPort) + ")/criminal_minds?charset=utf8mb4&parseTime=True&loc=Local")
 	default:
 	}
 	conn, err := gorm.Open(dialector, &gorm.Config{})

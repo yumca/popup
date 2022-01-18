@@ -2,40 +2,34 @@ package tables
 
 import "popup/model"
 
-type User struct {
-	Id       int    `json:"id"`
-	Uname    string `json:"uname"`
-	Wsfd     int    `json:"wsfd"`
-	Tcpfd    int    `json:"tcpfd"`
-	Loginkey string `json:"loginkey"`
-	Ctime    int    `json:"ctime"`
+type Meeting struct {
+	Id        int    `json:"id"`
+	Timestamp int    `json:"timestamp"`
+	Content   string `json:"content"`
+	Notify    int    `json:"notify"`
 }
 
-func (User) TableName() string {
-	return "user"
+func (Meeting) TableName() string {
+	return "meeting"
 }
 
-func (u *User) Create() {
+func (u *Meeting) Create() {
 	db := model.GetDb()
 	db.Create(u)
 }
 
-func (u *User) Save() {
+func (u *Meeting) Save() {
 	db := model.GetDb()
 	db.Save(u)
 }
 
-func (u *User) GetUserByKey(loginkey string) *User {
-	if loginkey == "" {
-		return u
-	}
+func (u *Meeting) Delete() {
 	db := model.GetDb()
-	db.Where("loginkey = ?", loginkey).First(u)
-	return u
+	db.Delete(u)
 }
 
-func (u User) GetUsers(params ...interface{}) []User {
-	var users []User
+func (u Meeting) GetMeetings(params ...interface{}) []Meeting {
+	var Meetings []Meeting
 	db := model.GetDb()
 	if len(params) > 0 && params[0] != "" {
 		if len(params) > 1 {
@@ -44,11 +38,11 @@ func (u User) GetUsers(params ...interface{}) []User {
 			db = db.Where(params[0])
 		}
 	}
-	db.Find(&users)
-	return users
+	db.Find(&Meetings)
+	return Meetings
 }
 
-func (u *User) GetUserInfo(params ...interface{}) *User {
+func (u *Meeting) GetMeetingInfo(params ...interface{}) *Meeting {
 	db := model.GetDb()
 	if len(params) > 0 && params[0] != "" {
 		if len(params) > 1 {
@@ -61,7 +55,7 @@ func (u *User) GetUserInfo(params ...interface{}) *User {
 	return u
 }
 
-func (u *User) Update(column string, value interface{}, params ...interface{}) *User {
+func (u *Meeting) Update(column string, value interface{}, params ...interface{}) *Meeting {
 	db := model.GetDb().Model(u)
 	if len(params) > 0 && params[0] != "" {
 		if len(params) > 1 {
@@ -74,7 +68,7 @@ func (u *User) Update(column string, value interface{}, params ...interface{}) *
 	return u
 }
 
-func (u *User) Updates(datas ...map[string]interface{}) *User {
+func (u *Meeting) Updates(datas ...map[string]interface{}) *Meeting {
 	db := model.GetDb()
 	update := datas[0]
 	if len(datas) > 1 {

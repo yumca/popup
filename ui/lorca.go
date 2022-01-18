@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	Lorcaui lorca.UI
-	path    string
-	err     error
+	Lorcaui  lorca.UI
+	execpath string
+	err      error
 )
 
 func LorcaNew(width, height int, customArgs ...string) error {
-	path = library.GetExecPath()
+	execpath = library.GetExecPath()
 	Lorcaui, err = lorca.New(view.GetView(""), "", width, height, customArgs...)
 	if err != nil {
 		log.Fatal(err)
