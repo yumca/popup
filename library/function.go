@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -131,6 +133,33 @@ func Utf8ToGbk(s []byte) []byte {
 		return s
 	}
 	return d
+}
+
+func UserHomeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
+}
+
+func UserLocalLowDir() string {
+	if runtime.GOOS == "windows" {
+		path := UserHomeDir() + "\\AppData\\LocalLow"
+		return path
+	}
+	return UserHomeDir() + "/LocalLow"
+}
+
+func UserLocalDir() string {
+	if runtime.GOOS == "windows" {
+		path := UserHomeDir() + "\\AppData\\Local"
+		return path
+	}
+	return UserHomeDir() + "/Local"
 }
 
 //

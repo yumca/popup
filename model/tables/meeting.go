@@ -1,6 +1,9 @@
 package tables
 
-import "popup/model"
+import (
+	"popup/model"
+	"strings"
+)
 
 type Meeting struct {
 	Id        int    `json:"id"`
@@ -36,6 +39,29 @@ func (u Meeting) GetMeetings(params ...interface{}) []Meeting {
 			db = db.Where(params[0], params[1:]...)
 		} else {
 			db = db.Where(params[0])
+		}
+	}
+	db.Find(&Meetings)
+	return Meetings
+}
+
+func (u Meeting) GetMeetingsByParams(params ...interface{}) []Meeting {
+	var Meetings []Meeting
+	db := model.GetDb()
+	if len(params) > 0 {
+		if params[0] != "" {
+			c := strings.Count(params[0].(string), "?")
+			if c > 0 {
+				db = db.Where(params[0], params[1:c+1]...)
+			} else {
+				db = db.Where(params[0])
+			}
+			params = params[c+1:]
+		} else {
+			params = params[1:]
+		}
+		if len(params) > 0 && params[0] != "" {
+			db = db.Order(params[0])
 		}
 	}
 	db.Find(&Meetings)

@@ -18,7 +18,7 @@
     lorca_localjs("jquery").then(function (res) {
         eval(res)
         run()
-        setInterval(notify, 30000)
+        setInterval(notify, 10000)
     })
     function run() {
         lorca_get_meetings().then(function (res) {
@@ -48,7 +48,7 @@
                 }
                 var val = {
                     content: textarea,
-                    timestamp: notifytime - 60000,
+                    timestamp: notifytime - 120000,
                     notify: 0
                 }
                 lorca_save_meeting(JSON.stringify(val)).then(function (err) {
@@ -75,6 +75,14 @@
                 } else {
                     html += '<span style="color: green;">未通知</span>'
                 }
+                var myDate = new Date(notify_list[i].timestamp);
+                var year = myDate.getFullYear(); //获取当前年
+                var mon = myDate.getMonth() + 1; //获取当前月
+                var date = myDate.getDate(); //获取当前日
+                var hour = myDate.getHours(); //获取当前小时
+                var minute = myDate.getMinutes(); //获取当前分钟
+                var date_str = year + "-" + mon + "-" + date + " " + hour + ":" + minute
+                html += ' <span>通知时间：' + date_str + '</span>'
                 html += '</div>'
             }
             $('#list').html(html)
@@ -98,7 +106,7 @@
         if (notify_list.length > 0) {
             for (var i = 0; i < notify_list.length; i++) {
                 var now = (new Date()).getTime()
-                if (notify_list[i].notify == 0 && notify_list[i].timestamp < now) {
+                if (notify_list[i].notify == 0 && notify_list[i].timestamp <= now) {
                     notify_list[i].notify = 1
                     lorca_alert("开会通知", notify_list[i].content)
                     lorca_update_meeting(JSON.stringify(notify_list[i])).then(function (res) {

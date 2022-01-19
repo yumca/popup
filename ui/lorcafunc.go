@@ -49,7 +49,10 @@ func lorca_update_meeting(update_json string) string {
 
 func lorca_get_meetings() string {
 	var meeting tables.Meeting
-	meetings := meeting.GetMeetings()
+	timeStr := time.Now().Format("2006-01-02")
+	t, _ := time.Parse("2006-01-02", timeStr)
+	ti := t.UnixMilli()
+	meetings := meeting.GetMeetingsByParams("timestamp > ?", ti, "notify desc,timestamp asc,id asc")
 	s, err := json.Marshal(meetings)
 	if err != nil {
 		return err.Error()

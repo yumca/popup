@@ -1,6 +1,8 @@
 package main
 
-import "popup/ui"
+import (
+	"popup/ui"
+)
 
 func main() {
 	ui.LorcaNew(480, 320)
