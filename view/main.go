@@ -35,8 +35,8 @@ func viewMain() string {
 	</head>
 
 	<body>
-		<!--<button onclick="lorca_loadcontent('main')">刷新</button>-->
-		<!--<button onclick="lorca_alert('弹窗','弹窗内容')">test</button>-->
+		<button onclick="lorca_loadcontent('main')">刷新</button>
+		<!--<button onclick="lorca_windows_notification('弹窗','弹窗内容')">弹窗</button>-->
 		<div><textarea id="textarea" style="height: 40%; width: 100%;"></textarea></div>
 		<div id="list">
 			<div>无</div>
@@ -137,7 +137,8 @@ func viewMain() string {
 					var now = (new Date()).getTime()
 					if (notify_list[i].notify == 0 && notify_list[i].timestamp <= now) {
 						notify_list[i].notify = 1
-						lorca_alert("开会通知", notify_list[i].content)
+						// lorca_alert("开会通知", notify_list[i].content)
+						lorca_windows_notification('开会通知',notify_list[i].content)
 						lorca_update_meeting(JSON.stringify(notify_list[i])).then(function (res) {
 							if (res == "") {
 								lorca_get_meetings().then(function (res) {

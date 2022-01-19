@@ -3,17 +3,14 @@ package ui
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"popup/library"
 	"popup/model/tables"
 	"popup/view"
-	"strings"
 	"time"
 
-	"github.com/go-vgo/robotgo"
+	"github.com/lxn/walk"
 )
+
+var walkWindow *walk.MainWindow
 
 func jsbind() {
 	//监控事件
@@ -23,6 +20,7 @@ func jsbind() {
 	Lorcaui.Bind("lorca_loaduri", lorca_loaduri)
 	Lorcaui.Bind("lorca_localjs", lorca_localjs)
 	Lorcaui.Bind("lorca_alert", lorca_alert)
+	Lorcaui.Bind("lorca_windows_notification", lorca_windows_notification)
 	Lorcaui.Bind("lorca_save_meeting", lorca_save_meeting)
 	Lorcaui.Bind("lorca_get_meetings", lorca_get_meetings)
 	Lorcaui.Bind("lorca_update_meeting", lorca_update_meeting)
@@ -70,13 +68,35 @@ func lorca_save_meeting(save_json string) string {
 	return ""
 }
 
+func lorca_windows_notification(t, m string) string {
+	if walkWindow == nil {
+		walkWindow, err = walk.NewMainWindow()
+		if err != nil {
+			return err.Error()
+		}
+	}
+	ni, err := walk.NewNotifyIcon(walkWindow)
+	if err != nil {
+		return err.Error()
+	}
+	defer ni.Dispose()
+	if err := ni.SetVisible(true); err != nil {
+		return err.Error()
+	}
+	if err := ni.ShowInfo(t, m); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
 func lorca_alert(t, m string) {
-	go robotgo.ShowAlert(string(library.Utf8ToGbk([]byte(t))), string(library.Utf8ToGbk([]byte(m))))
-	execFile, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(execFile)
-	index := strings.LastIndex(path, string(os.PathSeparator))
-	pids, _ := robotgo.FindIds(path[index+1:])
-	robotgo.ActivePID(pids[0])
+	// go robotgo.ShowAlert(string(library.Utf8ToGbk([]byte(t))), string(library.Utf8ToGbk([]byte(m))))
+	// execFile, _ := exec.LookPath(os.Args[0])
+	// path, _ := filepath.Abs(execFile)
+	// index := strings.LastIndex(path, string(os.PathSeparator))
+	// pids, _ := robotgo.FindIds(path[index+1:])
+	// robotgo.ActivePID(pids[0])
+
 	// _, fullFilename, _, _ := runtime.Caller(0)
 	// filename := path.Base(fullFilename)
 	// fmt.Println(filename)
