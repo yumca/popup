@@ -50,7 +50,7 @@ func lorca_get_meetings() string {
 	timeStr := time.Now().Format("2006-01-02")
 	t, _ := time.Parse("2006-01-02", timeStr)
 	ti := t.UnixMilli()
-	meetings := meeting.GetMeetingsByParams("timestamp > ?", ti, "notify desc,timestamp asc,id asc")
+	meetings := meeting.GetMeetingsByParams("timestamp > ?", ti, "notify asc,timestamp asc,id asc")
 	s, err := json.Marshal(meetings)
 	if err != nil {
 		return err.Error()
@@ -126,14 +126,14 @@ func event_monitor() {
 	//注册导航跳转事件
 	Lorcaui.SetEvent("Page.frameNavigated")
 	//执行禁止操作
-	runBan()
+	// runBan()
 	go func() {
 		for {
 			//监控导航跳转事件
 			unixMicro, _ := Lorcaui.PopEvent("Page.frameNavigated")
 			//如果有导航跳转事件冒出  执行禁止操作
 			if unixMicro > 0 {
-				runBan()
+				// runBan()
 			}
 			time.Sleep(time.Millisecond * 100)
 		}

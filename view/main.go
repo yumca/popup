@@ -138,7 +138,7 @@ func viewMain() string {
 					if (notify_list[i].notify == 0 && notify_list[i].timestamp <= now) {
 						notify_list[i].notify = 1
 						// lorca_alert("开会通知", notify_list[i].content)
-						lorca_windows_notification('开会通知',notify_list[i].content)
+						lorca_windows_notification('开会通知', notify_list[i].content).then(function (res) { })
 						lorca_update_meeting(JSON.stringify(notify_list[i])).then(function (res) {
 							if (res == "") {
 								lorca_get_meetings().then(function (res) {
@@ -151,7 +151,6 @@ func viewMain() string {
 								})
 							}
 						})
-
 					}
 				}
 			}
