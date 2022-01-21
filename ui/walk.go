@@ -25,9 +25,10 @@ func UiWalkWindowNew(width, height int) error {
 	//列表单条内容结构
 	var items []contentEntry
 	mettings := get_meetings()
+	// var cstSh = time.FixedZone("CST", 8*3600) //东八区
 	//循环给item列表赋值
 	for _, v := range mettings {
-		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04:05"), v.Content, func(v tables.Meeting) string {
+		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).UTC().Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
 			if v.Notify == 1 {
 				return "已通知"
 			} else {
