@@ -1,10 +1,17 @@
 package main
 
-import "popup/ui"
+import (
+	"fmt"
+	"popup/ui"
+)
 
 func main() {
-	ui.UiWalkWindowNew(480, 320)
+	if err := ui.UiWalkWindowNew(480, 320); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	ui.UiWalkWindowRun()
+	ui.WalkWindowDone()
 	// defer ui.LorcaClose()
 	// <-ui.LorcaDone()
 
