@@ -79,7 +79,7 @@ var conf_json = `{
     "Db": {
         "DbHost": "127.0.0.1",
         "DbUser": "root",
-        "DbPwd": "b2d60af82a28cdfa",
+        "DbPwd": "root",
         "DbPort": 3306,
         "DbPrefix": "",
         "DbType": "mysql",

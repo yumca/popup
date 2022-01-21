@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"popup/model/tables"
 	"time"
 
 	"github.com/lxn/walk"
@@ -8,27 +9,34 @@ import (
 	"github.com/lxn/win"
 )
 
-var isSpecialMode = walk.NewMutableCondition()
 var UiMainWindow = new(UiWalkWindow)
 
 var ticker *time.Ticker
 var cancel chan bool
+var lb *walk.ListBox
+var model *contentModel
+var input *walk.TextEdit
 
 type UiWalkWindow struct {
 	*walk.MainWindow
 }
 
 func UiWalkWindowNew(width, height int) error {
-	var lb *walk.ListBox
 	//列表单条内容结构
 	var items []contentEntry
-	var te *walk.TextEdit
+	mettings := get_meetings()
 	//循环给item列表赋值
-	for i := 10; i > 0; i-- {
-		items = append(items, contentEntry{"a", "Some stuff just happend. ", "未通知"})
+	for _, v := range mettings {
+		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04:05"), v.Content, func(v tables.Meeting) string {
+			if v.Notify == 1 {
+				return "已通知"
+			} else {
+				return "未通知"
+			}
+		}(v)})
 	}
 	//列表内容模型
-	model := &contentModel{items: items}
+	model = &contentModel{items: items}
 	//设置列表风格
 	styler := &Styler{
 		lb:                  &lb,
@@ -66,13 +74,12 @@ func UiWalkWindowNew(width, height int) error {
 		Layout: VBox{},
 		Children: []Widget{
 			TextEdit{
-				AssignTo: &te,
+				AssignTo: &input,
 				MaxSize:  Size{Width: width - 24, Height: height / 2},
-				OnKeyDown: func(key walk.Key) {
-					if key == walk.KeyReturn {
-						//todo   按下回车后将数据存储
-					}
-				},
+			},
+			PushButton{
+				Text:      "add",
+				OnClicked: save_meeting,
 			},
 			Composite{
 				DoubleBuffering: true,
@@ -85,6 +92,10 @@ func UiWalkWindowNew(width, height int) error {
 						ItemStyler:     styler,
 					},
 				},
+			},
+			PushButton{
+				Text:      "delete",
+				OnClicked: delete_meeting,
 			},
 		},
 	}.Create()); err != nil {
@@ -99,18 +110,19 @@ func UiWalkWindowNew(width, height int) error {
 		for {
 			select {
 			case <-ticker.C:
-				UiMainWindow.Synchronize(func() {
-					trackLatest := lb.ItemVisible(len(model.items)-1) && len(lb.SelectedIndexes()) <= 1
-					model.items = append(model.items, contentEntry{"1", "Some new stuff.", "sss"})
-					index := len(model.items) - 1
-					model.PublishItemsInserted(index, index)
+				// UiMainWindow.Synchronize(func() {
+				// 	trackLatest := lb.ItemVisible(len(model.items)-1) && len(lb.SelectedIndexes()) <= 1
+				// 	model.items = append(model.items, contentEntry{1, "1", "Some new stuff.", "sss"})
+				// 	index := len(model.items) - 1
+				// 	model.PublishItemsInserted(index, index)
 
-					if trackLatest {
-						lb.EnsureItemVisible(len(model.items) - 1)
-					}
-				})
+				// 	if trackLatest {
+				// 		lb.EnsureItemVisible(len(model.items) - 1)
+				// 	}
+				// })
 
 			case <-cancel:
+				ticker.Stop()
 				break
 			}
 		}
@@ -125,7 +137,6 @@ func UiWalkWindowRun() int {
 }
 
 func WalkWindowDone() {
-	ticker.Stop()
 	cancel <- true
 }
 
@@ -143,6 +154,7 @@ func (m *contentModel) Items() interface{} {
 }
 
 type contentEntry struct {
+	id        int
 	timestamp string
 	content   string
 	notify    string
