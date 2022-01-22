@@ -100,18 +100,11 @@ func notifyTicker() {
 	}()
 }
 
-func doNotification(t, m string) error {
-	ni, err := walk.NewNotifyIcon(UiMainWindow)
-	if err != nil {
-		return err
+func doNotification(t, m string) (err error) {
+	if err = notifyIcon.ShowCustom(t, m, icon); err != nil {
+		return
 	}
-	defer ni.Dispose()
-	if err = ni.SetVisible(true); err != nil {
-		return err
-	}
-	if err = ni.ShowInfo(t, m); err != nil {
-		return err
-	}
+
 	return nil
 }
 

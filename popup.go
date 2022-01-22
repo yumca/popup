@@ -10,7 +10,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	ui.UiWalkWindowRun()
+	fmt.Println(ui.UiWalkWindowRun())
 	ui.WalkWindowDone()
 	// defer ui.LorcaClose()
 	// <-ui.LorcaDone()

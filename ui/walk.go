@@ -1,6 +1,11 @@
 package ui
 
 import (
+	"bufio"
+	"io"
+	"net/http"
+	"os"
+	"popup/library"
 	"popup/model/tables"
 	"time"
 
@@ -14,12 +19,17 @@ var UiMainWindow = new(UiWalkWindow)
 var lb *walk.ListBox
 var model *contentModel
 var input *walk.TextEdit
+var icon *walk.Icon
+var notifyIcon *walk.NotifyIcon
+var homePath = library.ProgramDir()
+var iconName = "stop.ico"
+var contextMenu *walk.Action
 
 type UiWalkWindow struct {
 	*walk.MainWindow
 }
 
-func UiWalkWindowNew(width, height int) error {
+func UiWalkWindowNew(width, height int) (err error) {
 	//列表单条内容结构
 	var items []contentEntry
 	mettings := get_meetings()
@@ -45,7 +55,7 @@ func UiWalkWindowNew(width, height int) error {
 		textWidthDPI2Height: make(map[textWidthDPI]int),
 	}
 
-	if err := (MainWindow{
+	if err = (MainWindow{
 		//引入窗口
 		AssignTo: &UiMainWindow.MainWindow,
 		Title:    "会议提醒程序",
@@ -60,11 +70,18 @@ func UiWalkWindowNew(width, height int) error {
 					Separator{},
 					Action{
 						Text:        "E&xit",
-						OnTriggered: func() { UiMainWindow.Close() },
+						OnTriggered: func() { walk.App().Exit(0) }, //UiMainWindow.Close()
 					},
 				},
 			},
 		},
+		// ContextMenuItems: []MenuItem{
+		// 	Action{
+		// 		AssignTo:    &contextMenu,
+		// 		Text:        "E&xit",
+		// 		OnTriggered: func() { walk.App().Exit(0) }, //UiMainWindow.Close()
+		// 	},
+		// },
 		//窗口最小大小
 		MinSize: Size{Width: 200, Height: 200},
 		//设置窗口大小
@@ -98,7 +115,81 @@ func UiWalkWindowNew(width, height int) error {
 			},
 		},
 	}.Create()); err != nil {
-		return err
+		return
+	}
+	notifyIcon, err = walk.NewNotifyIcon(UiMainWindow)
+	if err != nil {
+		return
+	}
+	//http://118.24.10.229/down/y.png
+	_, err = os.Stat(homePath + iconName)
+	if os.IsNotExist(err) {
+		imgUrl := "http://118.24.10.229/down/y.png"
+		var res *http.Response
+		res, err = http.Get(imgUrl)
+		if err != nil {
+			return
+		}
+		defer res.Body.Close()
+		// 获得get请求响应的reader对象
+		reader := bufio.NewReaderSize(res.Body, 32*1024)
+		var file *os.File
+		file, err = os.Create(homePath + iconName)
+		if err != nil {
+			return
+		}
+		// 获得文件的writer对象
+		writer := bufio.NewWriter(file)
+		_, err = io.Copy(writer, reader)
+		if err != nil {
+			return
+		}
+	}
+	// load icon from a file.
+	walk.Resources.SetRootDirPath(homePath)
+	icon, err = walk.Resources.Icon(iconName)
+	// icon, err = walk.NewIconFromFile(homePath + iconName)
+	if err != nil {
+		return
+	}
+	if err = UiMainWindow.SetIcon(icon); err != nil {
+		return
+	}
+	if err = notifyIcon.SetIcon(icon); err != nil {
+		return
+	}
+
+	if err = notifyIcon.SetToolTip("Click for info or use the context menu to exit."); err != nil {
+		return
+	}
+
+	// When the left mouse button is pressed, bring up our balloon.
+	notifyIcon.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
+		if button != walk.LeftButton {
+			return
+		}
+
+		// if err := ni.ShowCustom(
+		// 	"Walk NotifyIcon Example",
+		// 	"There are multiple ShowX methods sporting different icons.",
+		// 	icon); err != nil {
+
+		// 		return
+		// }
+	})
+
+	// put an exit action into the context menu.
+	exitAction := walk.NewAction()
+	if err = exitAction.SetText("E&xit"); err != nil {
+		return
+	}
+	exitAction.Triggered().Attach(func() { walk.App().Exit(0) })
+	if err = notifyIcon.ContextMenu().Actions().Add(exitAction); err != nil {
+		return
+	}
+	// The notify icon is hidden initially, so we have to make it visible.
+	if err = notifyIcon.SetVisible(true); err != nil {
+		return
 	}
 	notifyTicker()
 
@@ -111,6 +202,7 @@ func UiWalkWindowRun() int {
 }
 
 func WalkWindowDone() {
+	// notifyIcon.Dispose()
 	cancel <- true
 }
 
