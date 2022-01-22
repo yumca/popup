@@ -18,22 +18,26 @@ func (Meeting) TableName() string {
 
 func (u *Meeting) Create() {
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	db.Create(u)
 }
 
 func (u *Meeting) Save() {
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	db.Save(u)
 }
 
 func (u *Meeting) Delete() {
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	db.Delete(u)
 }
 
 func (u Meeting) GetMeetings(params ...interface{}) []Meeting {
 	var Meetings []Meeting
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	if len(params) > 0 && params[0] != "" {
 		if len(params) > 1 {
 			db = db.Where(params[0], params[1:]...)
@@ -48,6 +52,7 @@ func (u Meeting) GetMeetings(params ...interface{}) []Meeting {
 func (u Meeting) GetMeetingsByParams(params ...interface{}) []Meeting {
 	var Meetings []Meeting
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	if len(params) > 0 {
 		if params[0] != "" {
 			c := strings.Count(params[0].(string), "?")
@@ -70,6 +75,7 @@ func (u Meeting) GetMeetingsByParams(params ...interface{}) []Meeting {
 
 func (u *Meeting) GetMeetingInfo(params ...interface{}) *Meeting {
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	if len(params) > 0 && params[0] != "" {
 		if len(params) > 1 {
 			db = db.Where(params[0], params[1:]...)
@@ -83,6 +89,7 @@ func (u *Meeting) GetMeetingInfo(params ...interface{}) *Meeting {
 
 func (u *Meeting) Update(column string, value interface{}, params ...interface{}) *Meeting {
 	db := model.GetDb().Model(u)
+	db.AutoMigrate(u)
 	if len(params) > 0 && params[0] != "" {
 		if len(params) > 1 {
 			db = db.Where(params[0], params[1:]...)
@@ -96,6 +103,7 @@ func (u *Meeting) Update(column string, value interface{}, params ...interface{}
 
 func (u *Meeting) Updates(datas ...map[string]interface{}) *Meeting {
 	db := model.GetDb()
+	db.AutoMigrate(u)
 	update := datas[0]
 	if len(datas) > 1 {
 		update = datas[1]

@@ -141,25 +141,54 @@ func UserHomeDir() string {
 		if home == "" {
 			home = os.Getenv("USERPROFILE")
 		}
-		return home
+		return home + "\\"
 	}
-	return os.Getenv("HOME")
+	return os.Getenv("HOME") + "/"
 }
 
 func UserLocalLowDir() string {
 	if runtime.GOOS == "windows" {
-		path := UserHomeDir() + "\\AppData\\LocalLow"
+		path := UserHomeDir() + "AppData\\LocalLow\\"
 		return path
 	}
-	return UserHomeDir() + "/LocalLow"
+	return UserHomeDir() + "LocalLow/"
 }
 
 func UserLocalDir() string {
 	if runtime.GOOS == "windows" {
-		path := UserHomeDir() + "\\AppData\\Local"
+		path := UserHomeDir() + "AppData\\Local\\"
 		return path
 	}
-	return UserHomeDir() + "/Local"
+	return UserHomeDir() + "Local/"
+}
+
+func ProgramDir() string {
+	conf, err := GetConf()
+	if err != nil {
+		return ""
+	}
+	path := ""
+	if runtime.GOOS == "windows" {
+		path = UserLocalLowDir() + conf.Setting.ServerName + "\\"
+	} else {
+		path = UserLocalLowDir() + conf.Setting.ServerName + "/"
+	}
+	if c := MkdirAll(path); !c {
+		return ""
+	}
+	return path
+}
+
+func MkdirAll(path string) bool {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		//递归创建文件夹
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }
 
 //

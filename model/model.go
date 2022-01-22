@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -20,14 +21,17 @@ func NewConnection() *gorm.DB {
 		log.Fatal("mainServer GetConfig Error:", err)
 	}
 	var dialector gorm.Dialector
+	var config gorm.Config
 	switch conf.Db.DbType {
 	case "mysql":
 		dialector = mysql.Open(conf.Db.DbUser + ":" + conf.Db.DbPwd + "@(" + conf.Db.DbHost + ":" + strconv.Itoa(conf.Db.DbPort) + ")/" + conf.Db.Database + "?charset=utf8mb4&parseTime=True&loc=Local")
-	// case "sqlite3":
-	// 	dialector = mysql.Open(conf.Db.DbUser + ":" + conf.Db.DbPwd + "@(" + conf.Db.DbHost + ":" + strconv.Itoa(conf.Db.DbPort) + ")/criminal_minds?charset=utf8mb4&parseTime=True&loc=Local")
+		config = gorm.Config{}
+	case "sqlite":
+		dialector = sqlite.Open(library.ProgramDir() + conf.Db.Database + ".db?charset=utf8mb4&parseTime=True&loc=Local")
+		config = gorm.Config{}
 	default:
 	}
-	conn, err := gorm.Open(dialector, &gorm.Config{})
+	conn, err := gorm.Open(dialector, &config)
 	if err != nil {
 		log.Fatal(err)
 	}

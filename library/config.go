@@ -82,7 +82,7 @@ var conf_json = `{
         "DbPwd": "root",
         "DbPort": 3306,
         "DbPrefix": "",
-        "DbType": "mysql",
+        "DbType": "sqlite",
         "Database": "test"
     },
     "Redis": {
