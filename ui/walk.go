@@ -11,8 +11,6 @@ import (
 
 var UiMainWindow = new(UiWalkWindow)
 
-var ticker *time.Ticker
-var cancel chan bool
 var lb *walk.ListBox
 var model *contentModel
 var input *walk.TextEdit
@@ -28,7 +26,7 @@ func UiWalkWindowNew(width, height int) error {
 	// var cstSh = time.FixedZone("CST", 8*3600) //东八区
 	//循环给item列表赋值
 	for _, v := range mettings {
-		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).UTC().Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
+		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
 			if v.Notify == 1 {
 				return "已通知"
 			} else {
@@ -57,7 +55,7 @@ func UiWalkWindowNew(width, height int) error {
 				Items: []MenuItem{
 					Action{
 						Text:        "刷新",
-						OnTriggered: UiMainWindow.reflashTriggered,
+						OnTriggered: reflash,
 					},
 					Separator{},
 					Action{
@@ -102,32 +100,7 @@ func UiWalkWindowNew(width, height int) error {
 	}.Create()); err != nil {
 		return err
 	}
-
-	ticker = time.NewTicker(time.Second * 10)
-
-	cancel = make(chan bool, 1)
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				// UiMainWindow.Synchronize(func() {
-				// 	trackLatest := lb.ItemVisible(len(model.items)-1) && len(lb.SelectedIndexes()) <= 1
-				// 	model.items = append(model.items, contentEntry{1, "1", "Some new stuff.", "sss"})
-				// 	index := len(model.items) - 1
-				// 	model.PublishItemsInserted(index, index)
-
-				// 	if trackLatest {
-				// 		lb.EnsureItemVisible(len(model.items) - 1)
-				// 	}
-				// })
-
-			case <-cancel:
-				ticker.Stop()
-				break
-			}
-		}
-	}()
+	notifyTicker()
 
 	return nil
 }
@@ -141,7 +114,7 @@ func WalkWindowDone() {
 	cancel <- true
 }
 
-func (uw *UiWalkWindow) reflashTriggered() {
+func (uw *UiWalkWindow) msgBoxTriggered() {
 	walk.MsgBox(uw, "Open", "Pretend to open a file...", walk.MsgBoxIconInformation)
 }
 

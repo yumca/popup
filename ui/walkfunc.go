@@ -8,48 +8,33 @@ import (
 	"github.com/lxn/walk"
 )
 
+// 14:15，2号会议室，项目开发子系统和产品项目子系统对接
+
+var ticker *time.Ticker
+var cancel chan bool
+
 func delete_meeting() {
 	var meeting tables.Meeting
 	if len(lb.SelectedIndexes()) > 0 {
-		// var map_items = make(map[int]contentEntry)
 		for _, idx := range lb.SelectedIndexes() {
 			meeting.Id = model.items[idx].id
 			meeting.Delete()
-			// map_items[idx] = model.items[idx]
 		}
-		var items []contentEntry
-		mettings := get_meetings()
-		//循环给item列表赋值
-		for _, v := range mettings {
-			items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
-				if v.Notify == 1 {
-					return "已通知"
-				} else {
-					return "未通知"
-				}
-			}(v)})
-		}
-		// var tmpitems []contentEntry
-		// for i, v := range model.items {
-		// 	if _, ok := map_items[i]; !ok {
-		// 		tmpitems = append(tmpitems, v)
-		// 	}
-		// }
-		model.items = items
-		model.PublishItemsReset()
+		reflash()
 	}
 }
 
-func update_meeting() {
-	// var meeting tables.Meeting
-	// err := json.Unmarshal([]byte(update_json), &meeting)
-	// meeting.Update("notify", meeting.Notify)
+func update_meeting(c contentEntry) {
+	var meeting tables.Meeting
+	meeting.Id = c.id
+	meeting.Update("notify", 1)
 }
 
 func get_meetings() []tables.Meeting {
 	var meeting tables.Meeting
 	timeStr := time.Now().Format("2006-01-02")
-	t, _ := time.Parse("2006-01-02", timeStr)
+	L, _ := time.LoadLocation("Asia/Shanghai")
+	t, _ := time.ParseInLocation("2006-01-02", timeStr, L)
 	ti := t.UnixMilli()
 	return meeting.GetMeetingsByParams("timestamp > ?", ti, "notify asc,timestamp asc,id asc")
 }
@@ -61,28 +46,88 @@ func save_meeting() {
 	if len(res) > 0 {
 		input.SetText("")
 		var meeting tables.Meeting
-		// var cstSh = time.FixedZone("CST", 8*3600) //东八区
-		timeStr := time.Now().UTC().Format("2006-01-02")
-		t, _ := time.Parse("2006-01-02 15:04", timeStr+" "+res[0])
-		meeting.Timestamp = int(t.UTC().UnixMilli())
+		timeStr := time.Now().Format("2006-01-02")
+		L, _ := time.LoadLocation("Asia/Shanghai")
+		t, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" "+res[0], L)
+		meeting.Timestamp = int(t.UnixMilli())
 		meeting.Content = text
 		meeting.Notify = 0
 		meeting.Save()
-		var items []contentEntry
-		mettings := get_meetings()
-		//循环给item列表赋值
-		for _, v := range mettings {
-			items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
-				if v.Notify == 1 {
-					return "已通知"
-				} else {
-					return "未通知"
-				}
-			}(v)})
-		}
-		model.items = items
-		model.PublishItemsReset()
+		reflash()
 	} else {
-		walk.MsgBox(UiMainWindow, "匹配错误", "未匹配到正确时间格式|小时:分钟", walk.MsgBoxIconInformation)
+		walk.MsgBox(UiMainWindow, "匹配错误", "未匹配到正确时间格式 | 小时:分钟", walk.MsgBoxIconInformation)
 	}
+}
+
+func notifyTicker() {
+	ticker = time.NewTicker(time.Second * 10)
+	cancel = make(chan bool, 1)
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				nowTime := time.Now().UnixMilli()
+				for _, v := range model.items {
+					L, _ := time.LoadLocation("Asia/Shanghai")
+					t, _ := time.ParseInLocation("2006-01-02 15:04", v.timestamp, L)
+					if nowTime >= t.UnixMilli() && v.notify == "未通知" {
+						err := doNotification("会议通知", v.content)
+						if err != nil {
+							walk.MsgBox(UiMainWindow, "会议通知错误", "通知失败："+err.Error(), walk.MsgBoxIconInformation)
+							break
+						}
+						update_meeting(v)
+						reflash()
+					}
+				}
+				// UiMainWindow.Synchronize(func() {
+				// 	trackLatest := lb.ItemVisible(len(model.items)-1) && len(lb.SelectedIndexes()) <= 1
+				// 	model.items = append(model.items, contentEntry{1, "1", "Some new stuff.", "sss"})
+				// 	index := len(model.items) - 1
+				// 	model.PublishItemsInserted(index, index)
+
+				// 	if trackLatest {
+				// 		lb.EnsureItemVisible(len(model.items) - 1)
+				// 	}
+				// })
+
+			case <-cancel:
+				ticker.Stop()
+				break
+			}
+		}
+	}()
+}
+
+func doNotification(t, m string) error {
+	ni, err := walk.NewNotifyIcon(UiMainWindow)
+	if err != nil {
+		return err
+	}
+	defer ni.Dispose()
+	if err = ni.SetVisible(true); err != nil {
+		return err
+	}
+	if err = ni.ShowInfo(t, m); err != nil {
+		return err
+	}
+	return nil
+}
+
+func reflash() {
+	var items []contentEntry
+	mettings := get_meetings()
+	//循环给item列表赋值
+	for _, v := range mettings {
+		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
+			if v.Notify == 1 {
+				return "已通知"
+			} else {
+				return "未通知"
+			}
+		}(v)})
+	}
+	model.items = items
+	model.PublishItemsReset()
 }
