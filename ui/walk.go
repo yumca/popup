@@ -1,8 +1,7 @@
 package ui
 
 import (
-	"bufio"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"popup/library"
@@ -22,7 +21,7 @@ var input *walk.TextEdit
 var icon *walk.Icon
 var notifyIcon *walk.NotifyIcon
 var homePath = library.ProgramDir()
-var iconName = "stop.ico"
+var iconName = "y.ico" //stop.ico
 var contextMenu *walk.Action
 
 type UiWalkWindow struct {
@@ -88,6 +87,12 @@ func UiWalkWindowNew(width, height int) (err error) {
 		Size:   Size{Width: width, Height: height},
 		Font:   Font{Family: "Segoe UI", PointSize: 9},
 		Layout: VBox{},
+		OnSizeChanged: func() {
+			if win.IsIconic(UiMainWindow.Handle()) {
+				UiMainWindow.Hide()
+				notifyIcon.SetVisible(true)
+			}
+		},
 		Children: []Widget{
 			TextEdit{
 				AssignTo: &input,
@@ -121,29 +126,21 @@ func UiWalkWindowNew(width, height int) (err error) {
 	if err != nil {
 		return
 	}
-	//http://118.24.10.229/down/y.png
+	//http://118.24.10.229/down/iconName
 	_, err = os.Stat(homePath + iconName)
 	if os.IsNotExist(err) {
-		imgUrl := "http://118.24.10.229/down/y.png"
-		var res *http.Response
-		res, err = http.Get(imgUrl)
+		imgUrl := "http://118.24.10.229/down/" + iconName
+		var resp *http.Response
+		resp, err = http.Get(imgUrl)
 		if err != nil {
 			return
 		}
-		defer res.Body.Close()
-		// 获得get请求响应的reader对象
-		reader := bufio.NewReaderSize(res.Body, 32*1024)
-		var file *os.File
-		file, err = os.Create(homePath + iconName)
+		defer resp.Body.Close()
+		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return
+			return err
 		}
-		// 获得文件的writer对象
-		writer := bufio.NewWriter(file)
-		_, err = io.Copy(writer, reader)
-		if err != nil {
-			return
-		}
+		ioutil.WriteFile(homePath+iconName, data, 0644)
 	}
 	// load icon from a file.
 	walk.Resources.SetRootDirPath(homePath)
@@ -165,17 +162,10 @@ func UiWalkWindowNew(width, height int) (err error) {
 
 	// When the left mouse button is pressed, bring up our balloon.
 	notifyIcon.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
-		if button != walk.LeftButton {
-			return
+		if button == walk.LeftButton {
+			UiMainWindow.Show()
+			win.ShowWindow(UiMainWindow.Handle(), win.SW_RESTORE)
 		}
-
-		// if err := ni.ShowCustom(
-		// 	"Walk NotifyIcon Example",
-		// 	"There are multiple ShowX methods sporting different icons.",
-		// 	icon); err != nil {
-
-		// 		return
-		// }
 	})
 
 	// put an exit action into the context menu.
@@ -202,8 +192,8 @@ func UiWalkWindowRun() int {
 }
 
 func WalkWindowDone() {
-	// notifyIcon.Dispose()
-	cancel <- true
+	notifyIcon.Dispose()
+	cancelticker <- true
 }
 
 func (uw *UiWalkWindow) msgBoxTriggered() {

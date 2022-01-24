@@ -11,7 +11,7 @@ import (
 // 14:15，2号会议室，项目开发子系统和产品项目子系统对接
 
 var ticker *time.Ticker
-var cancel chan bool
+var cancelticker chan bool
 
 func delete_meeting() {
 	var meeting tables.Meeting
@@ -61,7 +61,7 @@ func save_meeting() {
 
 func notifyTicker() {
 	ticker = time.NewTicker(time.Second * 10)
-	cancel = make(chan bool, 1)
+	cancelticker = make(chan bool, 1)
 
 	go func() {
 		for {
@@ -92,7 +92,7 @@ func notifyTicker() {
 				// 	}
 				// })
 
-			case <-cancel:
+			case <-cancelticker:
 				ticker.Stop()
 				break
 			}
