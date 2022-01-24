@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -189,6 +191,14 @@ func MkdirAll(path string) bool {
 		}
 	}
 	return true
+}
+
+//获取当前文件执行路径
+func GetExecPath() string {
+	execFile, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(execFile)
+	index := strings.LastIndex(path, string(os.PathSeparator))
+	return path[:index]
 }
 
 //

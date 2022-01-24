@@ -1,5 +1,3 @@
 /.git
-chat.exe
+*.exe
 go_chat.log
-popup.exe
-test.exe
