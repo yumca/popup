@@ -58,22 +58,22 @@ func UiWalkWindowNew(width, height int) (err error) {
 		//引入窗口
 		AssignTo: &UiMainWindow.MainWindow,
 		Title:    "会议提醒程序",
-		MenuItems: []MenuItem{
-			Menu{
-				Text: "操作",
-				Items: []MenuItem{
-					Action{
-						Text:        "刷新",
-						OnTriggered: reflash,
-					},
-					Separator{},
-					Action{
-						Text:        "E&xit",
-						OnTriggered: func() { walk.App().Exit(0) }, //UiMainWindow.Close()
-					},
-				},
-			},
-		},
+		// MenuItems: []MenuItem{
+		// 	Menu{
+		// 		Text: "操作",
+		// 		Items: []MenuItem{
+		// 			Action{
+		// 				Text:        "刷新",
+		// 				OnTriggered: reflash,
+		// 			},
+		// 			Separator{},
+		// 			Action{
+		// 				Text:        "E&xit",
+		// 				OnTriggered: func() { walk.App().Exit(0) }, //UiMainWindow.Close()
+		// 			},
+		// 		},
+		// 	},
+		// },
 		// ContextMenuItems: []MenuItem{
 		// 	Action{
 		// 		AssignTo:    &contextMenu,
@@ -99,8 +99,12 @@ func UiWalkWindowNew(width, height int) (err error) {
 				MaxSize:  Size{Width: width - 24, Height: height / 2},
 			},
 			PushButton{
-				Text:      "add",
+				Text:      "添加",
 				OnClicked: save_meeting,
+			},
+			PushButton{
+				Text:      "刷新",
+				OnClicked: reflash,
 			},
 			Composite{
 				DoubleBuffering: true,
@@ -115,7 +119,7 @@ func UiWalkWindowNew(width, height int) (err error) {
 				},
 			},
 			PushButton{
-				Text:      "delete",
+				Text:      "删除",
 				OnClicked: delete_meeting,
 			},
 		},
@@ -156,7 +160,7 @@ func UiWalkWindowNew(width, height int) (err error) {
 		return
 	}
 
-	if err = notifyIcon.SetToolTip("Click for info or use the context menu to exit."); err != nil {
+	if err = notifyIcon.SetToolTip("点击打开窗口"); err != nil {
 		return
 	}
 

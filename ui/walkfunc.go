@@ -35,8 +35,7 @@ func get_meetings() []tables.Meeting {
 	timeStr := time.Now().Format("2006-01-02")
 	L, _ := time.LoadLocation("Asia/Shanghai")
 	t, _ := time.ParseInLocation("2006-01-02", timeStr, L)
-	ti := t.UnixMilli()
-	return meeting.GetMeetingsByParams("timestamp > ?", ti, "notify asc,timestamp asc,id asc")
+	return meeting.GetMeetingsByParams("timestamp > ?", t.UnixMilli(), "notify asc,timestamp asc,id asc")
 }
 
 func save_meeting() {
@@ -49,7 +48,12 @@ func save_meeting() {
 		timeStr := time.Now().Format("2006-01-02")
 		L, _ := time.LoadLocation("Asia/Shanghai")
 		t, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" "+res[0], L)
-		meeting.Timestamp = int(t.UnixMilli())
+		worktime, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" 09:00", L)
+		if t.UnixMilli() < worktime.UnixMilli() {
+			meeting.Timestamp = int(t.UnixMilli()) + 43200000 - 120000
+		} else {
+			meeting.Timestamp = int(t.UnixMilli()) - 120000
+		}
 		meeting.Content = text
 		meeting.Notify = 0
 		meeting.Save()
