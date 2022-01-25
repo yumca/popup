@@ -33,7 +33,8 @@ func update_meeting(c contentEntry) {
 func get_meetings() []tables.Meeting {
 	var meeting tables.Meeting
 	timeStr := time.Now().Format("2006-01-02")
-	L, _ := time.LoadLocation("Asia/Shanghai")
+	// L, _ := time.LoadLocation("Asia/Shanghai")
+	L := time.FixedZone("CST", 8*3600)
 	t, _ := time.ParseInLocation("2006-01-02", timeStr, L)
 	return meeting.GetMeetingsByParams("timestamp > ?", t.UnixMilli(), "notify asc,timestamp asc,id asc")
 }
@@ -46,7 +47,8 @@ func save_meeting() {
 		input.SetText("")
 		var meeting tables.Meeting
 		timeStr := time.Now().Format("2006-01-02")
-		L, _ := time.LoadLocation("Asia/Shanghai")
+		// L, _ := time.LoadLocation("Asia/Shanghai")
+		L := time.FixedZone("CST", 8*3600)
 		t, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" "+res[0], L)
 		worktime, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" 09:00", L)
 		if t.UnixMilli() < worktime.UnixMilli() {
@@ -73,7 +75,8 @@ func notifyTicker() {
 			case <-ticker.C:
 				nowTime := time.Now().UnixMilli()
 				for _, v := range model.items {
-					L, _ := time.LoadLocation("Asia/Shanghai")
+					// L, _ := time.LoadLocation("Asia/Shanghai")
+					L := time.FixedZone("CST", 8*3600)
 					t, _ := time.ParseInLocation("2006-01-02 15:04", v.timestamp, L)
 					if nowTime >= t.UnixMilli() && v.notify == "未通知" {
 						err := doNotification("会议通知", v.content)
