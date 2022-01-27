@@ -1,6 +1,9 @@
 package ui
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
 	"popup/model/tables"
 	"regexp"
 	"time"
@@ -130,4 +133,44 @@ func reflash() {
 	}
 	model.items = items
 	model.PublishItemsReset()
+}
+
+type open struct {
+	Code     int    `json:"code"`
+	Msg      string `json:"msg"`
+	Opentime int    `json:"opentime"`
+}
+
+func getOpen() {
+	url := "http://mbstr.hundian.club/dingding/api/get_open"
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	var st open
+	err = json.Unmarshal(data, &st) //第二个参数要地址传递
+	if err != nil {
+		return
+	}
+	if st.Code == 0 {
+		var meeting tables.Meeting
+		L := time.FixedZone("CST", 8*3600)
+		t1, _ := time.ParseInLocation("2006-01-02", time.UnixMilli(int64(st.Opentime*1000)).Format("2006-01-02"), L)
+		t2 := int(t1.UnixMilli()) + 86400000 - 1000
+		meeting.GetMeetingInfo("content LIKE ? AND timestamp > ? AND timestamp < ?", "今天开机%", t1.UnixMilli(), t2)
+		if meeting.Id < 1 {
+			meeting.Timestamp = (st.Opentime + 30600) * 1000
+			meeting.Content = st.Msg
+			meeting.Notify = 0
+			meeting.Save()
+			reflash()
+		}
+	} else if st.Code == 1 {
+		walk.MsgBox(UiMainWindow, "获取开机时间", st.Msg, walk.MsgBoxIconInformation)
+	}
 }

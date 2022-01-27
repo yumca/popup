@@ -186,6 +186,7 @@ func UiWalkWindowNew(width, height int) (err error) {
 		return
 	}
 	notifyTicker()
+	getOpen()
 
 	return nil
 }
