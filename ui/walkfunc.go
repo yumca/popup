@@ -64,7 +64,7 @@ func save_meeting() {
 		meeting.Save()
 		reflash()
 	} else {
-		walk.MsgBox(UiMainWindow, "匹配错误", "未匹配到正确时间格式 | 小时:分钟", walk.MsgBoxIconInformation)
+		walk.MsgBox(UiMainWindow, "匹配错误", "未匹配到正确的时间格式 | 小时:分钟", walk.MsgBoxIconInformation)
 	}
 }
 
@@ -82,9 +82,9 @@ func notifyTicker() {
 					L := time.FixedZone("CST", 8*3600)
 					t, _ := time.ParseInLocation("2006-01-02 15:04", v.timestamp, L)
 					if nowTime >= t.UnixMilli() && v.notify == "未通知" {
-						err := doNotification("会议通知", v.content)
+						err := doNotification("windows通知", v.content)
 						if err != nil {
-							walk.MsgBox(UiMainWindow, "会议通知错误", "通知失败："+err.Error(), walk.MsgBoxIconInformation)
+							walk.MsgBox(UiMainWindow, "通知错误", "通知失败："+err.Error(), walk.MsgBoxIconInformation)
 							break
 						}
 						update_meeting(v)
@@ -171,6 +171,6 @@ func getOpen() {
 			reflash()
 		}
 	} else if st.Code == 1 {
-		walk.MsgBox(UiMainWindow, "获取开机时间", st.Msg, walk.MsgBoxIconInformation)
+		walk.MsgBox(UiMainWindow, "获取开机时间失败", st.Msg, walk.MsgBoxIconInformation)
 	}
 }

@@ -57,7 +57,7 @@ func UiWalkWindowNew(width, height int) (err error) {
 	if err = (MainWindow{
 		//引入窗口
 		AssignTo: &UiMainWindow.MainWindow,
-		Title:    "会议提醒程序",
+		Title:    "windows通知程序",
 		// MenuItems: []MenuItem{
 		// 	Menu{
 		// 		Text: "操作",
