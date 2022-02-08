@@ -52,8 +52,8 @@ func save_meeting() {
 		timeStr := time.Now().Format("2006-01-02")
 		// L, _ := time.LoadLocation("Asia/Shanghai")
 		L := time.FixedZone("CST", 8*3600)
-		t, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" "+res[0], L)
-		worktime, _ := time.ParseInLocation("2006-01-02 15:04", timeStr+" 09:00", L)
+		t, _ := time.ParseInLocation("2006-01-02 15:04:05", timeStr+" "+res[0]+":00", L)
+		worktime, _ := time.ParseInLocation("2006-01-02 15:04:05", timeStr+" 09:00:00", L)
 		if t.UnixMilli() < worktime.UnixMilli() {
 			meeting.Timestamp = int(t.UnixMilli()) + 43200000 - 120000
 		} else {
@@ -80,7 +80,7 @@ func notifyTicker() {
 				for _, v := range model.items {
 					// L, _ := time.LoadLocation("Asia/Shanghai")
 					L := time.FixedZone("CST", 8*3600)
-					t, _ := time.ParseInLocation("2006-01-02 15:04", v.timestamp, L)
+					t, _ := time.ParseInLocation("2006-01-02 15:04:05", v.timestamp, L)
 					if nowTime >= t.UnixMilli() && v.notify == "未通知" {
 						err := doNotification("windows通知", v.content)
 						if err != nil {
@@ -123,7 +123,7 @@ func reflash() {
 	mettings := get_meetings()
 	//循环给item列表赋值
 	for _, v := range mettings {
-		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
+		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04:05"), v.Content, func(v tables.Meeting) string {
 			if v.Notify == 1 {
 				return "已通知"
 			} else {

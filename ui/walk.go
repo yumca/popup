@@ -35,7 +35,7 @@ func UiWalkWindowNew(width, height int) (err error) {
 	// var cstSh = time.FixedZone("CST", 8*3600) //东八区
 	//循环给item列表赋值
 	for _, v := range mettings {
-		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04"), v.Content, func(v tables.Meeting) string {
+		items = append(items, contentEntry{v.Id, time.UnixMilli(int64(v.Timestamp)).Format("2006-01-02 15:04:05"), v.Content, func(v tables.Meeting) string {
 			if v.Notify == 1 {
 				return "已通知"
 			} else {
@@ -50,6 +50,7 @@ func UiWalkWindowNew(width, height int) (err error) {
 		lb:                  &lb,
 		model:               model,
 		dpi2StampSize:       make(map[int]walk.Size),
+		dpi2NotifySize:      make(map[int]walk.Size),
 		widthDPI2WsPerLine:  make(map[widthDPI]int),
 		textWidthDPI2Height: make(map[textWidthDPI]int),
 	}
@@ -237,6 +238,7 @@ type Styler struct {
 	model               *contentModel
 	font                *walk.Font
 	dpi2StampSize       map[int]walk.Size
+	dpi2NotifySize      map[int]walk.Size
 	widthDPI2WsPerLine  map[widthDPI]int
 	textWidthDPI2Height map[textWidthDPI]int // in native pixels
 }
@@ -333,23 +335,23 @@ func (s *Styler) StyleItem(style *walk.ListItemStyle) {
 
 		style.DrawText(item.notify, b, walk.TextEditControl|walk.TextWordbreak)
 
-		stampSize := s.StampSize()
-
-		x := b.X + stampSize.Width + marginH + lineW
-		canvas.DrawLinePixels(pen, walk.Point{x, b.Y - marginV}, walk.Point{x, b.Y - marginV + b.Height})
-
-		b.X += stampSize.Width + marginH*2 + lineW
-		b.Width -= stampSize.Width + marginH*4 + lineW
-
-		style.DrawText(item.timestamp, b, walk.TextEditControl|walk.TextWordbreak|walk.TextEndEllipsis)
-
 		notifySize := s.NotifySize()
 
-		x = b.X + notifySize.Width + marginH + lineW
+		x := b.X + notifySize.Width + marginH + lineW
 		canvas.DrawLinePixels(pen, walk.Point{x, b.Y - marginV}, walk.Point{x, b.Y - marginV + b.Height})
 
 		b.X += notifySize.Width + marginH*2 + lineW
 		b.Width -= notifySize.Width + marginH*4 + lineW
+
+		style.DrawText(item.timestamp, b, walk.TextEditControl|walk.TextWordbreak|walk.TextEndEllipsis)
+
+		stampSize := s.StampSize()
+
+		x = b.X + stampSize.Width + marginH + lineW
+		canvas.DrawLinePixels(pen, walk.Point{x, b.Y - marginV}, walk.Point{x, b.Y - marginV + b.Height})
+
+		b.X += stampSize.Width + marginH*2 + lineW
+		b.Width -= stampSize.Width + marginH*4 + lineW
 
 		style.DrawText(item.content, b, walk.TextEditControl|walk.TextWordbreak|walk.TextEndEllipsis)
 	}
@@ -365,7 +367,7 @@ func (s *Styler) StampSize() walk.Size {
 			return walk.Size{}
 		}
 
-		bounds, _, err := canvas.MeasureTextPixels("Jan _2 20:04:05.000", (*s.lb).Font(), walk.Rectangle{Width: 9999999}, walk.TextCalcRect)
+		bounds, _, err := canvas.MeasureTextPixels(time.StampMicro, (*s.lb).Font(), walk.Rectangle{Width: 9999999}, walk.TextCalcRect) //"Jan _2 20:04:05.000"
 		if err != nil {
 			return walk.Size{}
 		}
@@ -380,7 +382,7 @@ func (s *Styler) StampSize() walk.Size {
 func (s *Styler) NotifySize() walk.Size {
 	dpi := (*s.lb).DPI()
 
-	stampSize, ok := s.dpi2StampSize[dpi]
+	notifySize, ok := s.dpi2NotifySize[dpi]
 	if !ok {
 		canvas, err := s.Canvas()
 		if err != nil {
@@ -392,11 +394,11 @@ func (s *Styler) NotifySize() walk.Size {
 			return walk.Size{}
 		}
 
-		stampSize = bounds.Size()
-		s.dpi2StampSize[dpi] = stampSize
+		notifySize = bounds.Size()
+		s.dpi2NotifySize[dpi] = notifySize
 	}
 
-	return stampSize
+	return notifySize
 }
 
 func (s *Styler) Canvas() (*walk.Canvas, error) {
