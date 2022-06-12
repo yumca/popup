@@ -3,8 +3,6 @@ module popup
 go 1.16
 
 require (
-	github.com/akavel/rsrc v0.10.2 // indirect
-	github.com/go-redis/redis/v8 v8.11.4
 	github.com/lxn/walk v0.0.0-20210112085537-c389da54e794
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/mattn/go-sqlite3 v1.14.10 // indirect
